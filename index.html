@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Budget Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="number"] {
+            text-align: left;
+        }
+
+        .result {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .result h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .daily-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .daily-amount.positive {
+            color: #2ecc71;
+        }
+
+        .days-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Daily Budget Calculator</h1>
+        
+        <div class="input-group">
+            <label for="checkingBalance">Current Checking Balance ($)</label>
+            <input type="number" id="checkingBalance" step="0.01" placeholder="Enter current balance">
+        </div>
+        
+        <div class="input-group">
+            <label for="todayDate">Today's Date</label>
+            <input type="date" id="todayDate">
+        </div>
+        
+        <div class="input-group">
+            <label for="paydayDate">Next Payday</label>
+            <input type="date" id="paydayDate">
+        </div>
+        
+        <div class="result" id="result">
+            <h2>Your Daily Spending Limit</h2>
+            <div class="daily-amount">$0.00</div>
+            <div class="days-info">Enter your information above</div>
+        </div>
+    </div>
+
+    <script>
+        function getTodayDate() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+
+        function calculateDailyBudget() {
+            const balance = parseFloat(document.getElementById('checkingBalance').value);
+            const todayDate = new Date(document.getElementById('todayDate').value);
+            const paydayDate = new Date(document.getElementById('paydayDate').value);
+            const resultDiv = document.getElementById('result');
+            
+            if (!balance || isNaN(balance)) {
+                resultDiv.innerHTML = `
+                    <h2>Your Daily Spending Limit</h2>
+                    <div class="daily-amount">$0.00</div>
+                    <div class="error">Please enter a valid balance</div>
+                `;
+                return;
+            }
+            
+            if (!document.getElementById('todayDate').value || !document.getElementById('paydayDate').value) {
+                resultDiv.innerHTML = `
+                    <h2>Your Daily Spending Limit</h2>
+                    <div class="daily-amount">$0.00</div>
+                    <div class="error">Please select both dates</div>
+                `;
+                return;
+            }
+            
+            if (paydayDate <= todayDate) {
+                resultDiv.innerHTML = `
+                    <h2>Your Daily Spending Limit</h2>
+                    <div class="daily-amount">$0.00</div>
+                    <div class="error">Payday must be after today</div>
+                `;
+                return;
+            }
+            
+            const timeDifference = paydayDate.getTime() - todayDate.getTime();
+            const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+            const dailyBudget = balance / daysDifference;
+            
+            const amountClass = dailyBudget > 0 ? 'daily-amount positive' : 'daily-amount';
+            
+            resultDiv.innerHTML = `
+                <h2>Your Daily Spending Limit</h2>
+                <div class="${amountClass}">$${dailyBudget.toFixed(2)}</div>
+                <div class="days-info">${daysDifference} days until payday</div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('todayDate').value = getTodayDate();
+            
+            document.getElementById('checkingBalance').addEventListener('input', calculateDailyBudget);
+            document.getElementById('todayDate').addEventListener('change', calculateDailyBudget);
+            document.getElementById('paydayDate').addEventListener('change', calculateDailyBudget);
+        });
+    </script>
+</body>
+</html>
